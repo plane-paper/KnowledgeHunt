@@ -5,21 +5,25 @@ from PyPDF2 import PdfReader, PdfWriter
 # Load spaCy model for NLP processing
 nlp = spacy.load("en_core_web_sm")
 
-# Extract text from PDF and track pages
+# Step 1: Extract text from the PDF and track pages
 def extract_text_from_pdf(pdf_path):
+    """Extract text from each page of the PDF."""
     with pdfplumber.open(pdf_path) as pdf:
         pages_text = {}
         for i, page in enumerate(pdf.pages):
-            pages_text[i] = page.extract_text()
+            page_text = page.extract_text()
+            if page_text:  # Only store pages with extracted text
+                pages_text[i] = page_text
     return pages_text
 
-# Extract questions from pages using NLP
+# Step 2: Extract questions from text using NLP
 def extract_questions(pages_text):
+    """Identify and extract questions from the text."""
     questions = {}
-    
+
     for page_num, page_text in pages_text.items():
         doc = nlp(page_text)
-        page_questions = [sent.text for sent in doc.sents if "?" in sent.text]  # Extract sentences with question mark
+        page_questions = [sent.text for sent in doc.sents if "?" in sent.text]  # Capture sentences with question marks
         
         if page_questions:
             print(f"Page {page_num + 1}: Found questions -> {page_questions}")
@@ -28,44 +32,57 @@ def extract_questions(pages_text):
             if question not in questions:
                 questions[question] = []
             questions[question].append(page_num)
-    
+
     return questions
 
-# Categorize questions based on NLP similarity to category keywords
+# Step 3: Categorize questions based on similarity to keywords
 def categorize_by_content(questions, categories):
+    """Categorize questions by similarity to predefined category keywords."""
     categorized_questions = {category: [] for category in categories}
-    
-    # Process each question and categorize based on similarity to category keywords
+
     for question, pages in questions.items():
         doc = nlp(question)
+        
         for category, keywords in categories.items():
             category_doc = nlp(" ".join(keywords))
             similarity = doc.similarity(category_doc)  # Measure similarity between question and category keywords
             
-            # Adjust threshold if necessary (0.3 or lower to capture more questions)
-            if similarity > 0.3:  # Reduced threshold for better matching
+            # Consider a question relevant to a category if the similarity exceeds a threshold
+            if similarity > 0.3:  # You can adjust this threshold for better categorization
                 categorized_questions[category].append((question, pages))
                 print(f"Question categorized under {category}: {question}")
     
     return categorized_questions
 
-# Select relevant pages based on category
+# Step 4: Select relevant pages based on the selected category
 def select_relevant_pages(categorized_questions, selected_category):
+    """Select pages that are relevant to the chosen category."""
     selected_pages = set()
     for question, pages in categorized_questions[selected_category]:
         selected_pages.update(pages)
-    return sorted(list(selected_pages))  # Return pages in order
+    
+    return sorted(list(selected_pages))  # Return pages in sorted order
 
-# Create a new PDF with relevant pages
+# Step 5: Create a new PDF with relevant pages
 def create_contiguous_pdf(input_pdf, output_pdf, selected_pages):
+    """Create a new PDF with the selected pages from the input PDF."""
+    if not selected_pages:
+        print("No pages selected.")
+        return
+    
     pdf_reader = PdfReader(input_pdf)
     pdf_writer = PdfWriter()
 
     for page_num in selected_pages:
-        pdf_writer.add_page(pdf_reader.pages[page_num])
+        try:
+            pdf_writer.add_page(pdf_reader.pages[page_num])  # Add each selected page
+        except IndexError:
+            print(f"Error: Page number {page_num} is out of range.")
+            continue
 
     with open(output_pdf, "wb") as output_file:
         pdf_writer.write(output_file)
+    print(f"New PDF created with selected pages: {output_pdf}")
 
 # Main execution
 def main():
@@ -79,13 +96,12 @@ def main():
         "Trigonometry": ["sine", "cosine", "tan", "sec", "csc", "trig", "angle", "radians"],
     }
     
-    # Step 1: Extract text from PDF
+    # Step 1: Extract text from the PDF
     pages_text = extract_text_from_pdf(pdf_path)
     
     # Step 2: Extract questions
     questions = extract_questions(pages_text)
     
-    # Check if any questions are extracted
     if not questions:
         print("No questions extracted.")
         return
@@ -93,12 +109,11 @@ def main():
     # Step 3: Categorize questions by content
     categorized_questions = categorize_by_content(questions, categories)
     
-    # Check if any questions are categorized
     if not any(categorized_questions.values()):
         print("No questions categorized.")
         return
     
-    # Step 4: Select relevant pages (example: category "Integrals")
+    # Step 4: Select relevant pages for a selected category
     selected_category = "Functions"  # Change this based on the category you want
     selected_pages = select_relevant_pages(categorized_questions, selected_category)
     
@@ -108,7 +123,6 @@ def main():
     
     # Step 5: Create a new PDF with the selected pages
     create_contiguous_pdf(pdf_path, output_pdf, selected_pages)
-    print(f"New PDF created with selected pages: {output_pdf}")
 
 if __name__ == "__main__":
     main()
