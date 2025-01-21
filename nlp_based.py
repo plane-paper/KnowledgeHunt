@@ -1,6 +1,7 @@
 import spacy
 import pdfplumber
 from PyPDF2 import PdfReader, PdfWriter
+import re  # Importing the regex module for question detection
 
 # Load spaCy model for NLP processing
 nlp = spacy.load("en_core_web_sm")
@@ -18,18 +19,25 @@ def extract_text_from_pdf(pdf_path):
             else:
                 print(f"Warning: No text extracted from page {i + 1}.")
     print(f"Extracted text from {len(pages_text)} pages.")
+    # Debug: Print the first 500 characters of the extracted text for the first page (if exists)
+    if pages_text:
+        print(f"Preview of extracted text from page 1: {list(pages_text.values())[0][:500]}")
     return pages_text
 
-# Step 2: Extract questions from text using NLP
+# Step 2: Extract questions from text using regex
 def extract_questions(pages_text):
     """Identify and extract questions from the text."""
     questions = {}
 
     for page_num, page_text in pages_text.items():
         print(f"Processing Page {page_num + 1} for questions...")
-        doc = nlp(page_text)
-        page_questions = [sent.text for sent in doc.sents if "?" in sent.text]  # Capture sentences with question marks
         
+        # Preprocessing: Clean up unwanted symbols (e.g., bullets or unwanted characters)
+        cleaned_text = page_text.replace("y", "").replace("\n", " ").strip()
+
+        # Use regex to find sentences that end with a question mark
+        page_questions = re.findall(r"([^.]*\?)", cleaned_text)  # Match any sentence ending with a ?
+
         if page_questions:
             print(f"Page {page_num + 1}: Found questions -> {page_questions}")
         
