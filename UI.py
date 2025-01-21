@@ -59,7 +59,7 @@ def create_ui():
     input_pdf_entry.grid(row=0, column=1, padx=10, pady=5)
 
     # Output PDF Label and Entry
-    output_pdf_label = tk.Label(root, text="Output PDF Path:")
+    output_pdf_label = tk.Label(root, text="Output PDF Path\n(leave blank for output.pdf\nin current directory):")
     output_pdf_label.grid(row=1, column=0, padx=10, pady=5)
     output_pdf_entry = tk.Entry(root, width=50)
     output_pdf_entry.grid(row=1, column=1, padx=10, pady=5)
