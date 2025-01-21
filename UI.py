@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
 import threading
+from PIL import Image, ImageTk
 
 #Local imports
 from ctrl_f_based import find_keywords_in_pdf
@@ -52,6 +53,15 @@ def create_ui():
     root = tk.Tk()
     root.title("KnowledgeHunt")
 
+    root.resizable(False, False)
+    
+    try:
+        icon = Image.open("icon.ico")  # Replace with your icon file path
+        icon = ImageTk.PhotoImage(icon)
+        root.iconphoto(True, icon)
+    except Exception as e:
+        print(f"Error setting window icon: {e}")
+    
     # Input PDF Label and Entry
     input_pdf_label = tk.Label(root, text="Input PDF Path:")
     input_pdf_label.grid(row=0, column=0, padx=10, pady=5)
