@@ -50,7 +50,7 @@ def on_process_pdf(input_pdf_entry, type_combobox, output_pdf_entry, status_labe
 def create_ui():
     # Create main window
     root = tk.Tk()
-    root.title("PDF Keyword Extractor")
+    root.title("KnowledgeHunt")
 
     # Input PDF Label and Entry
     input_pdf_label = tk.Label(root, text="Input PDF Path:")
