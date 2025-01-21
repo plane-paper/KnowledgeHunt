@@ -31,7 +31,7 @@ def extract_pages_to_new_pdf(pdf_path, matching_pages, output_pdf_path):
 
 def main():
     input_pdf = "Mathematics_analysis_and_approaches_paper_1__TZ1_HL.pdf"  # Path to your input PDF
-    word_to_find = "function"  # Word you're searching for
+    word_to_find = "sin"  # Word you're searching for
     output_pdf = "output.pdf"  # Path to save the new PDF
 
     # Find pages containing the word
