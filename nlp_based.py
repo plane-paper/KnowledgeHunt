@@ -110,45 +110,47 @@ def create_contiguous_pdf(input_pdf, output_pdf, selected_pages):
         pdf_writer.write(output_file)
     print(f"New PDF created with selected pages: {output_pdf}")
 
-# Main execution
-def main():
-    pdf_path = r"Mathematics_analysis_and_approaches_paper_1__TZ1_HL.pdf"  # Path to the PDF file
-    output_pdf = "output_exam.pdf"  # Output PDF file
-    categories = {
-        "Functions": ["function", "graph", "domain", "range", "f(x)", "g(x)", "h(x)"],
-        "Integrals": ["integral", "area", "definite integral", "indefinite integral", "integration", "∫"],
-        "Derivatives": ["derivative", "rate of change", "d/dx", "slope", "tangent"],
-        "Limits": ["limit", "approaches", "∞", "tends to"],
-        "Trigonometry": ["sine", "cosine", "tan", "sec", "csc", "trig", "angle", "radians"],
-    }
-    
-    # Step 1: Extract text from the PDF
-    pages_text = extract_text_from_pdf(pdf_path)
-    
-    # Step 2: Extract questions
-    questions = extract_questions(pages_text)
-    
-    if not questions:
-        print("No questions extracted.")
-        return
-    
-    # Step 3: Categorize questions by content
-    categorized_questions = categorize_by_content(questions, categories)
-    
-    if not any(categorized_questions.values()):
-        print("No questions categorized.")
-        return
-    
-    # Step 4: Select relevant pages for a selected category
-    selected_category = "Functions"  # Change this based on the category you want
-    selected_pages = select_relevant_pages(categorized_questions, selected_category)
-    
-    if not selected_pages:
-        print(f"No relevant pages found for category {selected_category}.")
-        return
-    
-    # Step 5: Create a new PDF with the selected pages
-    create_contiguous_pdf(pdf_path, output_pdf, selected_pages)
 
-if __name__ == "__main__":
-    main()
+'''OBSOLETE CODE'''
+# # Main execution
+# def main():
+#     pdf_path = r"Mathematics_analysis_and_approaches_paper_1__TZ1_HL.pdf"  # Path to the PDF file
+#     output_pdf = "output_exam.pdf"  # Output PDF file
+#     categories = {
+#         "Functions": ["function", "graph", "domain", "range", "f(x)", "g(x)", "h(x)"],
+#         "Integrals": ["integral", "area", "definite integral", "indefinite integral", "integration", "∫"],
+#         "Derivatives": ["derivative", "rate of change", "d/dx", "slope", "tangent"],
+#         "Limits": ["limit", "approaches", "∞", "tends to"],
+#         "Trigonometry": ["sine", "cosine", "tan", "sec", "csc", "trig", "angle", "radians"],
+#     }
+    
+#     # Step 1: Extract text from the PDF
+#     pages_text = extract_text_from_pdf(pdf_path)
+    
+#     # Step 2: Extract questions
+#     questions = extract_questions(pages_text)
+    
+#     if not questions:
+#         print("No questions extracted.")
+#         return
+    
+#     # Step 3: Categorize questions by content
+#     categorized_questions = categorize_by_content(questions, categories)
+    
+#     if not any(categorized_questions.values()):
+#         print("No questions categorized.")
+#         return
+    
+#     # Step 4: Select relevant pages for a selected category
+#     selected_category = "Functions"  # Change this based on the category you want
+#     selected_pages = select_relevant_pages(categorized_questions, selected_category)
+    
+#     if not selected_pages:
+#         print(f"No relevant pages found for category {selected_category}.")
+#         return
+    
+#     # Step 5: Create a new PDF with the selected pages
+#     create_contiguous_pdf(pdf_path, output_pdf, selected_pages)
+
+# if __name__ == "__main__":
+#     main()
