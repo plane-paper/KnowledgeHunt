@@ -4,15 +4,23 @@ from PyPDF2 import PdfWriter, PdfReader
 
 def find_keywords_in_pdf(pdf_path, keywords):
     # Initialize a PDF reader
-    pdf_reader = PdfReader(pdf_path)
+    try:
+        pdf_reader = PdfReader(pdf_path)
+    except Exception as e:
+        return ["ERROR", e]
+    
     matching_pages = []
     
     # Iterate through each page
-    with pdfplumber.open(pdf_path) as pdf:
-        for page_number, page in enumerate(pdf.pages):
-            text = page.extract_text()
-            if text and any(keyword.lower() in text.lower() for keyword in keywords):
-                matching_pages.append(page_number)
+    try:
+        with pdfplumber.open(pdf_path) as pdf:
+            for page_number, page in enumerate(pdf.pages):
+                text = page.extract_text()
+                if text and any(keyword.lower() in text.lower() for keyword in keywords):
+                    matching_pages.append(page_number)
+    except Exception as e:
+        return ["ERROR", e]
+
 
     return matching_pages
 

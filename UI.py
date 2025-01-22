@@ -3,6 +3,7 @@ from tkinter import ttk
 from tkinter import messagebox
 import threading
 from PIL import Image, ImageTk
+import os
 
 #Local imports
 from ctrl_f_based import find_keywords_in_pdf
@@ -23,14 +24,24 @@ def process_pdf(input_pdf, selected_type, output_pdf, status_label):
         messagebox.showerror("Error", "Invalid type selected.")
         return
     
+    if not os.path.exists(input_pdf):
+        messagebox.showerror("Error", "Invalid input PDF path.")
+        return
+
     status_label.config(text=f"Searching for keywords in the '{selected_type}' category...")
+    
     matching_pages = find_keywords_in_pdf(input_pdf, keywords)
+
+    if matching_pages[0] == "ERROR":
+        messagebox.showerror("Error", "There was an error processing the PDF: " + str(matching_pages[1]))
+        status_label.config(text="Status: Waiting for input...") #Reset status label
+        return 
     
     if matching_pages:
         extract_pages_to_new_pdf(input_pdf, matching_pages, output_pdf)
-        messagebox.showinfo("Success", f"Pages containing '{selected_type}' have been saved to '{output_pdf}'.")
+        status_label.config(text=f"SUCCESS!! Pages containing '{selected_type}' have been saved to '{output_pdf}'.")
     else:
-        messagebox.showinfo("No Matches", f"No pages found containing keywords from the '{selected_type}' category.")
+        status_label.config(text=f"FAILED!! No pages found containing keywords from the '{selected_type}' category.")
 
 def on_process_pdf(input_pdf_entry, type_combobox, output_pdf_entry, status_label):
     input_pdf = input_pdf_entry.get()
