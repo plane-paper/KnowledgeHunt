@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/plane-paper/KnowledgeHunt/compare/v1.1.0...v1.2.0) (2025-02-12)
+
+
+### Features
+
+* using nlp to further narrow search result ([e16b7e9](https://github.com/plane-paper/KnowledgeHunt/commit/e16b7e92cea1272a0af11481e41cc6f04c31b4bf))
+
 # [1.1.0](https://github.com/plane-paper/KnowledgeHunt/compare/v1.0.0...v1.1.0) (2025-01-22)
 
 
