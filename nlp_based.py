@@ -1,156 +1,60 @@
-import spacy
 import pdfplumber
+import spacy
 from PyPDF2 import PdfReader, PdfWriter
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
-# Load spaCy model for NLP processing
-nlp = spacy.load("en_core_web_sm")
+def load_nlp_model():
+    try:
+        return spacy.load("en_core_web_sm")
+    except Exception as e:
+        print("Error loading NLP model:", e)
+        return None
 
-# Step 1: Extract text from the PDF and track pages
-def extract_text_from_pdf(pdf_path):
-    """Extract text from each page of the PDF."""
-    print(f"Opening PDF file: {pdf_path}")
-    with pdfplumber.open(pdf_path) as pdf:
-        pages_text = {}
-        for i, page in enumerate(pdf.pages):
-            page_text = page.extract_text()
-            if page_text:  # Only store pages with extracted text
-                pages_text[i] = page_text
-            else:
-                print(f"Warning: No text extracted from page {i + 1}.")
-    print(f"Extracted text from {len(pages_text)} pages.")
-    # Debug: Print the first 500 characters of the extracted text for the first page (if exists)
-    if pages_text:
-        print(f"Preview of extracted text from page 1: {list(pages_text.values())[0][:500]}")
-    return pages_text
+def compute_tfidf_similarity(keywords, text):
+    # Create a document from the keywords
+    doc_keywords = " ".join(keywords)
+    documents = [doc_keywords, text]
+    vectorizer = TfidfVectorizer().fit_transform(documents)
+    vectors = vectorizer.toarray()
+    return cosine_similarity([vectors[0]], [vectors[1]])[0][0]
 
-# Step 2: Extract questions from text using NLP
-def extract_questions(pages_text):
-    """Identify and extract questions from the text."""
-    questions = {}
+def filter_relevant_pages(input_pdf, keywords, output_pdf):
+    nlp = load_nlp_model()
+    if not nlp:
+        print("NLP model not loaded. Exiting...")
+        return ["ERROR", "NLP model not loaded"]
 
-    for page_num, page_text in pages_text.items():
-        print(f"Processing Page {page_num + 1} for questions...")
-        doc = nlp(page_text)
-        
-        # Debug: Print the first 3 sentences from spaCy's sentence segmentation
-        print(f"First 3 sentences from Page {page_num + 1}:")
-        for i, sent in enumerate(doc.sents):
-            if i < 3:  # Print first 3 sentences for debugging
-                print(f"Sentence {i + 1}: {sent.text}")
-        
-        page_questions = [sent.text for sent in doc.sents if "?" in sent.text]  # Capture sentences with question marks
-        
-        if page_questions:
-            print(f"Page {page_num + 1}: Found questions -> {page_questions}")
-        
-        for question in page_questions:
-            if question not in questions:
-                questions[question] = []
-            questions[question].append(page_num)
-
-    print(f"Total questions extracted: {len(questions)}")
-    return questions
-
-# Step 3: Categorize questions based on similarity to keywords
-def categorize_by_content(questions, categories):
-    """Categorize questions by similarity to predefined category keywords."""
-    categorized_questions = {category: [] for category in categories}
-
-    for question, pages in questions.items():
-        doc = nlp(question)
-        
-        for category, keywords in categories.items():
-            category_doc = nlp(" ".join(keywords))
-            similarity = doc.similarity(category_doc)  # Measure similarity between question and category keywords
-            
-            # Debug: Show the similarity score
-            print(f"Question: {question}")
-            print(f"Category: {category} - Similarity Score: {similarity:.2f}")
-            
-            # Consider a question relevant to a category if the similarity exceeds a threshold
-            if similarity > 0.3:  # You can adjust this threshold for better categorization
-                categorized_questions[category].append((question, pages))
-                print(f"Question categorized under {category}: {question}")
-    
-    # Debug: Print out how many questions belong to each category
-    for category, questions_list in categorized_questions.items():
-        print(f"Category: {category} - Questions: {len(questions_list)}")
-    
-    return categorized_questions
-
-# Step 4: Select relevant pages based on the selected category
-def select_relevant_pages(categorized_questions, selected_category):
-    """Select pages that are relevant to the chosen category."""
-    selected_pages = set()
-    for question, pages in categorized_questions[selected_category]:
-        selected_pages.update(pages)
-    
-    print(f"Selected {len(selected_pages)} pages for category {selected_category}.")
-    return sorted(list(selected_pages))  # Return pages in sorted order
-
-# Step 5: Create a new PDF with relevant pages
-def create_contiguous_pdf(input_pdf, output_pdf, selected_pages):
-    """Create a new PDF with the selected pages from the input PDF."""
-    if not selected_pages:
-        print("No pages selected.")
-        return
-    
-    print(f"Creating new PDF with selected pages: {selected_pages}")
     pdf_reader = PdfReader(input_pdf)
     pdf_writer = PdfWriter()
 
-    for page_num in selected_pages:
-        try:
-            pdf_writer.add_page(pdf_reader.pages[page_num])  # Add each selected page
-        except IndexError:
-            print(f"Error: Page number {page_num} is out of range.")
-            continue
+    with pdfplumber.open(input_pdf) as pdf:
+        for page_number, page in enumerate(pdf.pages):
+            text = page.extract_text()
+            if not text:
+                continue
 
-    with open(output_pdf, "wb") as output_file:
-        pdf_writer.write(output_file)
-    print(f"New PDF created with selected pages: {output_pdf}")
-
-
-'''OBSOLETE CODE'''
-# # Main execution
-# def main():
-#     pdf_path = r"Mathematics_analysis_and_approaches_paper_1__TZ1_HL.pdf"  # Path to the PDF file
-#     output_pdf = "output_exam.pdf"  # Output PDF file
-#     categories = {
-#         "Functions": ["function", "graph", "domain", "range", "f(x)", "g(x)", "h(x)"],
-#         "Integrals": ["integral", "area", "definite integral", "indefinite integral", "integration", "∫"],
-#         "Derivatives": ["derivative", "rate of change", "d/dx", "slope", "tangent"],
-#         "Limits": ["limit", "approaches", "∞", "tends to"],
-#         "Trigonometry": ["sine", "cosine", "tan", "sec", "csc", "trig", "angle", "radians"],
-#     }
+            doc = nlp(text)
+            
+            # Use spaCy similarity if the model has vectors;
+            # otherwise, fall back to TF-IDF based cosine similarity.
+            if doc.has_vector:
+                keyword_docs = [nlp(keyword) for keyword in keywords]
+                similarity_score = sum(doc.similarity(kw_doc) for kw_doc in keyword_docs) / len(keyword_docs)
+            else:
+                similarity_score = compute_tfidf_similarity(keywords, text)
+            
+            # Named Entity Recognition check: count matching entities
+            entities = [ent.text.lower() for ent in doc.ents]
+            entity_match_count = sum(1 for keyword in keywords if any(keyword.lower() in ent for ent in entities))
+            
+            print(f"Page {page_number}: similarity_score = {similarity_score:.2f}, entity_match_count = {entity_match_count}")
+            
+            # Decide if page is relevant.
+            # Thresholds: similarity > 0.3 (adjust as needed) or at least one matching entity.
+            if similarity_score > 0.3 or entity_match_count > 0:
+                pdf_writer.add_page(pdf_reader.pages[page_number])
     
-#     # Step 1: Extract text from the PDF
-#     pages_text = extract_text_from_pdf(pdf_path)
-    
-#     # Step 2: Extract questions
-#     questions = extract_questions(pages_text)
-    
-#     if not questions:
-#         print("No questions extracted.")
-#         return
-    
-#     # Step 3: Categorize questions by content
-#     categorized_questions = categorize_by_content(questions, categories)
-    
-#     if not any(categorized_questions.values()):
-#         print("No questions categorized.")
-#         return
-    
-#     # Step 4: Select relevant pages for a selected category
-#     selected_category = "Functions"  # Change this based on the category you want
-#     selected_pages = select_relevant_pages(categorized_questions, selected_category)
-    
-#     if not selected_pages:
-#         print(f"No relevant pages found for category {selected_category}.")
-#         return
-    
-#     # Step 5: Create a new PDF with the selected pages
-#     create_contiguous_pdf(pdf_path, output_pdf, selected_pages)
-
-# if __name__ == "__main__":
-#     main()
+    with open(output_pdf, "wb") as output:
+        pdf_writer.write(output)
+    return ["SUCCESS", None]

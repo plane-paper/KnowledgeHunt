@@ -8,6 +8,7 @@ import os
 #Local imports
 from ctrl_f_based import find_keywords_in_pdf
 from ctrl_f_based import extract_pages_to_new_pdf
+from nlp_based import filter_relevant_pages
 
 
 def process_pdf(input_pdf, selected_type, output_pdf, status_label):
@@ -38,8 +39,17 @@ def process_pdf(input_pdf, selected_type, output_pdf, status_label):
         return 
     
     if matching_pages:
-        extract_pages_to_new_pdf(input_pdf, matching_pages, output_pdf)
-        status_label.config(text=f"SUCCESS!! Pages containing '{selected_type}' have been saved to '{output_pdf}'.")
+        #extract_pages_to_new_pdf(input_pdf, matching_pages, output_pdf)
+        extract_pages_to_new_pdf(input_pdf, matching_pages, "temp.pdf")
+        status_label.config(text=f"Pages containing '{selected_type}' have been preliminarily saved to '{output_pdf}'.")
+        #status = filter_relevant_pages(output_pdf, keywords, output_pdf)
+        status = filter_relevant_pages("temp.pdf", keywords, output_pdf)
+        if status[0] == "ERROR":
+            messagebox.showerror("Error", "There was an error processing the PDF: " + str(status[1]))
+            status_label.config(text="Status: Waiting for input...")
+            return
+        else:
+            status_label.config(text=f"SUCCESS!! Relevant pages saved to '{output_pdf}'.")
     else:
         status_label.config(text=f"FAILED!! No pages found containing keywords from the '{selected_type}' category.")
 
@@ -101,4 +111,5 @@ def create_ui():
     process_button.grid(row=3, column=0, columnspan=2, pady=20)
 
     # Run the GUI
+    print("UI Created.")
     root.mainloop()
