@@ -13,8 +13,8 @@ from nlp_based import filter_relevant_pages
 
 def process_pdf(input_pdf, selected_type, output_pdf, status_label):
     keyword_dict = {
-        "Functions": ["function", "graph", "domain", "range", "f(x)", "g(x)", "h(x)"],
-        "Integrals": ["integral", "area", "definite integral", "indefinite integral", "integration", "∫"],
+        "Functions": ["function", "functions", "tangent", "graph", "domain", "range", "f(x)", "g(x)", "h(x)","f(", "g(", "sketch", "intersection"],
+        "Integrals": ["integral", "area", "definite", "indefinite", "integration", "∫"],
         "Derivatives": ["derivative", "rate of change", "d/dx", "slope", "tangent"],
         "Limits": ["limit", "approaches", "∞", "tends to"],
         "Trigonometry": ["sin", "cos", "tan", "sec", "csc", "trig", "angle", "radians"],
