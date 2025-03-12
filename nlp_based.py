@@ -52,7 +52,7 @@ def filter_relevant_pages(input_pdf, keywords, output_pdf):
             
             # Decide if page is relevant.
             # Thresholds: similarity > 0.3 (adjust as needed) or at least one matching entity.
-            if similarity_score > 0.3 or entity_match_count > 0:
+            if similarity_score > 0.1 or entity_match_count > 0:
                 pdf_writer.add_page(pdf_reader.pages[page_number])
     
     with open(output_pdf, "wb") as output:

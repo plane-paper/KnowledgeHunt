@@ -13,7 +13,7 @@ from nlp_based import filter_relevant_pages
 
 def process_pdf(input_pdf, selected_type, output_pdf, status_label):
     keyword_dict = {
-        "Functions": ["function", "functions", "tangent", "graph", "domain", "range", "f(x)", "g(x)", "h(x)","f(", "g(", "sketch", "intersection"],
+        "Functions": ["function", "functions", "tangent", "graph", "domain", "range", "f(x)", "g(x)", "h(x)","f(", "g(", "sketch", "intersection", "codomain", "composite", "inverse", "reflection", "translation", "dilation", "stretch", "compression", "shift", "symmetry", "polynomial", "rational", "exponential", "logarithm", "asymptote", "intercept", "inflection", "gradient"],
         "Integrals": ["integral", "area", "definite", "indefinite", "integration", "∫"],
         "Derivatives": ["derivative", "rate of change", "d/dx", "slope", "tangent"],
         "Limits": ["limit", "approaches", "∞", "tends to"],
@@ -41,7 +41,7 @@ def process_pdf(input_pdf, selected_type, output_pdf, status_label):
     if matching_pages:
         #extract_pages_to_new_pdf(input_pdf, matching_pages, output_pdf)
         extract_pages_to_new_pdf(input_pdf, matching_pages, "temp.pdf")
-        status_label.config(text=f"Pages containing '{selected_type}' have been preliminarily saved to '{output_pdf}'.")
+        status_label.config(text=f"Pages containing '{selected_type}' have been preliminarily saved to 'temp.pdf'.")
         #status = filter_relevant_pages(output_pdf, keywords, output_pdf)
         status = filter_relevant_pages("temp.pdf", keywords, output_pdf)
         if status[0] == "ERROR":
